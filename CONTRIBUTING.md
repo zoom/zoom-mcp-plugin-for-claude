@@ -6,7 +6,7 @@ This plugin bundles the Zoom MCP Server and two skills, `zoom-flagship-mcp` (the
 - A scope, endpoint or rate-limit tier in [`TOOLS.md`](TOOLS.md) is out of date.
 - The setup instructions in the [README](README.md) are wrong or unclear.
 
-Out of scope: other skills, slash commands, agents, hooks, other Zoom MCP servers, and developer content such as SDK, REST API, webhook or OAuth-implementation guidance. Developer content belongs in https://github.com/zoom/skills. Maintain Zoom's `skills/zoom-search/` skill and its routing regression cases here; the duplicate enterprise-rag copy has been removed.
+Out of scope: other skills, slash commands, agents, hooks, other Zoom MCP servers, and developer content such as SDK, REST API, webhook or OAuth-implementation guidance. Developer content belongs in https://github.com/zoom/skills. `skills/zoom-search/` is Zoom's `zoom-search` skill, included unmodified; changes to it belong with Zoom.
 
 ## Making a change
 

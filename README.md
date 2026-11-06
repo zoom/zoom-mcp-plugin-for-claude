@@ -34,7 +34,7 @@ Create a Zoom Doc with the action items from my last meeting.
 Two skills teach Claude how to use the server. They are instructions only, and they only work while the Zoom MCP server below is connected. `zoom-search` is read-only; `zoom-flagship-mcp` also covers actions that change data, under its confirmation rules.
 
 - [`zoom-flagship-mcp`](skills/zoom-flagship-mcp/SKILL.md) is the entry point. It routes all search and Ask work to `zoom-search` and handles named-item reads, doc and sheet creation, meeting changes, live meeting controls and doc collaborators itself. If `zoom-search` is unavailable, it reports search as unavailable; a write that needs a lookup requires an exact ID or link from the user. Its write rules say to resolve the exact target first and to confirm deletes, collaborator removals and in-meeting controls before running them.
-- [`zoom-search`](skills/zoom-search/SKILL.md) holds the detailed guidance for the three search tools (`search`, `search_describe_capabilities`, `ask`): datasources, filters, paging, third-party apps, time zones and `ask` errors. It is Zoom's search skill, maintained in this repository, and can be discovered and loaded independently. `zoom-flagship-mcp` also routes search and Ask work to it. Connected-app record lookups, counts and document links use discovered Ask sources; regression cases live in [`evals/`](skills/zoom-search/evals/).
+- [`zoom-search`](skills/zoom-search/SKILL.md) holds the detailed guidance for the three search tools (`search`, `search_describe_capabilities`, `ask`): datasources, filters, paging, third-party apps, time zones and `ask` errors. It is Zoom's search skill, included unmodified, and can be discovered and loaded independently. `zoom-flagship-mcp` also routes search and Ask work to it.
 
 In Claude Code they appear as `zoom-plugin:zoom-flagship-mcp` and `zoom-plugin:zoom-search`.
 
@@ -92,7 +92,7 @@ Some tools change or delete things, such as `meeting_delete`, `meeting_update` a
 .claude-plugin/plugin.json   plugin manifest
 .mcp.json                    the Zoom MCP server
 skills/zoom-flagship-mcp/    entry-point skill: routes requests
-skills/zoom-search/          Zoom's search skill and routing regression cases
+skills/zoom-search/          Zoom's search skill, unmodified
 TOOLS.md                     tools, scopes and rate limits
 ```
 

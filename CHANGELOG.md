@@ -4,12 +4,6 @@ All notable changes to this plugin are documented in this file.
 
 This plugin continues [zoom/zoom-plugin-claude](https://github.com/zoom/zoom-plugin-claude); entries before 2.0.0 describe that repository.
 
-## 2.0.2
-
-- made connected-app Ask routing take precedence over find/list/count/link verbs, with examples for Slack, Snowflake, Salesforce, ServiceNow, Workday and SharePoint
-- clarified source discovery, current and legacy request shapes, query constraints, and bounded retries that preserve the app scope; native Zoom requests retain their own routing
-- updated `zoom-search` to 1.0.1 and added de-identified routing regression cases; maintain the skill here after removal of its duplicate enterprise-rag copy
-
 ## 2.0.1
 
 - synced `zoom-search` unmodified with the current enterprise-rag source, including discovery-based datasource routing, Ask-based third-party retrieval, and authorization notices; its metadata version remains 1.0.0 and it can be loaded independently
