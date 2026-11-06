@@ -1,0 +1,206 @@
+{
+  "skill_name": "zoom-search",
+  "notes": "De-identified routing regressions. No runner is bundled. Replay with mock tools using the active schema and the supplied tool responses; do not call live services. Give the agent the prompt, context, skill and tool contracts, keeping expected_output, request_contains and assertions for the grader. For cases without tool_responses, mock Ask discovery with a name and alias matching the requested app and return a synthetic, source-appropriate answer. Grade observable tool calls, retained constraints and error handling separately from backend availability or answer accuracy. Include a no-skill baseline when measuring routing improvement.",
+  "evals": [
+    {
+      "id": 0,
+      "eval_name": "snowflake-aggregation-with-generic-tools",
+      "prompt": "In our connected Snowflake source, count accounts created in April, May and June 2026, grouped by month and Zero MRR versus Non-Zero MRR.",
+      "context": "User timezone is America/Los_Angeles. The intended Zoom connection exposes only search, search_describe_capabilities and ask; there is no tool named Snowflake or SQL.",
+      "expected_output": "Discover Ask sources and call scoped Ask with all months and both MRR bands, even though the request says count.",
+      "tool_responses": [
+        {
+          "tool": "search_describe_capabilities",
+          "request_contains": {"tool": "ask"},
+          "response": {"data": {"third_party_apps": [{"field_name": "source", "enum": [{"name": "Warehouse A", "alias": ["Snowflake"]}]}]}}
+        },
+        {
+          "tool": "ask",
+          "request_contains": {"datasources": [{"datasource": "third_party_apps", "source": ["Warehouse A"]}]},
+          "response": {"message": {"content": "The mock query returned no matching accounts."}, "citations": []}
+        }
+      ],
+      "assertions": [
+        "Used the intended Zoom tools rather than stopping because no Snowflake-specific tool exists",
+        "Discovered with tool=ask and sent the returned name Warehouse A, not the alias Snowflake",
+        "Sent datasources as an array of objects with source as a non-empty array; no top-level sources or JSON-encoded object",
+        "Preserved April, May, June, account creation, grouping by month and both MRR bands in query",
+        "Did not call Search, execute SQL, or claim that a missing app-named tool proves Snowflake unavailable"
+      ]
+    },
+    {
+      "id": 1,
+      "eval_name": "snowflake-payment-predicates",
+      "prompt": "Use Snowflake to list payments above USD 50,000 settled in Q2 2026. Include payment number, account ID, amount, currency and payment method.",
+      "context": "User timezone is America/Los_Angeles. Ask discovery exposes an authorized Snowflake source.",
+      "expected_output": "Scoped Ask retains the amount threshold, settlement window and requested fields; list does not select Search.",
+      "assertions": [
+        "Discovered and selected the Snowflake Ask source",
+        "Preserved the currency, strict greater-than threshold, settlement rather than creation date, Q2 window and every requested field",
+        "Did not invent Search filter fields or require an SQL executor"
+      ]
+    },
+    {
+      "id": 2,
+      "eval_name": "slack-exact-messages-not-native-chat",
+      "prompt": "Find two Slack messages from sample.user in #general containing 'howdy' on April 9, 2026, oldest first, with links.",
+      "context": "User timezone is America/Los_Angeles. Discovery exposes both a Slack Ask source and native Zoom chat datasources.",
+      "expected_output": "Ask uses the discovered Slack source and retains the exact message constraints and links.",
+      "assertions": [
+        "Called Ask with the discovered Slack source instead of native zoom_chat_message or zoom_chat_session",
+        "Retained sender, channel, quoted text, date, oldest-first order, two messages and links",
+        "Did not stop after failing to find a Slack-named tool or fall back to unscoped Ask"
+      ]
+    },
+    {
+      "id": 3,
+      "eval_name": "salesforce-exact-id-and-related-records",
+      "prompt": "In Salesforce, get the status of agreement 00430098 and list sales activities related to registration DR-100001.",
+      "expected_output": "Ask uses discovered Salesforce sources, preserving both object types and identifiers.",
+      "assertions": [
+        "Used scoped Ask, without first searching document indexes",
+        "Preserved agreement number 00430098 including leading zeros and registration DR-100001",
+        "Retained both agreement status and the registration's related sales activities",
+        "Used returned source names, not an invented sandbox hostname or a citation's source key"
+      ]
+    },
+    {
+      "id": 4,
+      "eval_name": "servicenow-policy-and-incident-count",
+      "prompt": "Using ServiceNow, find the Australia parental-leave policy link and count P1 incidents in Q4 2025. Count incidents only, excluding requests and tasks.",
+      "context": "User timezone is Australia/Sydney. Discovery exposes an authorized ServiceNow Ask source.",
+      "expected_output": "Ask handles the knowledge article and incident count with the same discovered app route.",
+      "assertions": [
+        "Used the discovered ServiceNow Ask source for both document and business-record retrieval",
+        "Preserved Australia, parental leave, the requested policy link, P1, Q4 2025 and exclusion of non-incident ticket types",
+        "Did not apply native Search paging or count returned citations as incidents"
+      ]
+    },
+    {
+      "id": 5,
+      "eval_name": "workday-expenses-and-team-time-off",
+      "prompt": "In Workday, list the approval status of my Q2 2020 expense reports and approved time-off requests from my direct reports in H1 2026.",
+      "context": "User timezone is America/Los_Angeles. Discovery exposes an authorized Workday Ask source.",
+      "expected_output": "Scoped Ask retains the different ownership and time scopes for expenses and time off.",
+      "assertions": [
+        "Used the discovered Workday Ask source with a correctly typed datasources array",
+        "Kept my expense reports distinct from my direct reports' time-off requests",
+        "Preserved Q2 2020, H1 2026, approval-status lookup and approved-only time off",
+        "Did not broaden to default scope or invent manager/sender Search filters"
+      ]
+    },
+    {
+      "id": 6,
+      "eval_name": "sharepoint-document-link-stays-on-ask",
+      "prompt": "Find the onboarding deck in our connected SharePoint and give me its link.",
+      "expected_output": "Discover SharePoint Ask sources and ask for the deck link directly.",
+      "assertions": [
+        "Used discovered SharePoint Ask sources despite find and link wording",
+        "Did not call Search for indexed third-party documents or verify a third-party citation with Search",
+        "Returned only a supplied URL, or explained that no link was returned"
+      ]
+    },
+    {
+      "id": 7,
+      "eval_name": "legacy-schema-uses-discovered-source",
+      "prompt": "Find the onboarding deck in SharePoint and give me its link.",
+      "context": "The active legacy capability tool accepts no tool parameter. Its Ask schema accepts datasources as an array with datasource third_party_file and source as a string. The capability response explicitly lists SharePoint's authorized Ask source. No third_party_apps key is exposed.",
+      "tool_responses": [
+        {
+          "tool": "search_describe_capabilities",
+          "request_contains": {},
+          "response": {"data": {"third_party_file": [{"field_name": "source", "enum": ["SharePoint"]}]}}
+        },
+        {
+          "tool": "ask",
+          "request_contains": {"datasources": [{"datasource": "third_party_file", "source": "SharePoint"}]},
+          "response": {"message": {"content": "The mock onboarding deck is available."}, "citations": [{"citation_title": "Onboarding", "citation_url": "https://example.com/onboarding"}]}
+        }
+      ],
+      "expected_output": "Use the discovered legacy source with the installed request shape, returning the supplied link.",
+      "assertions": [
+        "Did not pass the unsupported tool parameter to legacy discovery",
+        "Sent legacy source as the discovered string, not a current-schema array or invented alias",
+        "Did not declare SharePoint disconnected merely because third_party_apps is absent",
+        "Did not call Search or fabricate a link"
+      ]
+    },
+    {
+      "id": 8,
+      "eval_name": "file-scope-does-not-prove-live-app-support",
+      "prompt": "Count yesterday's Slack messages in #general.",
+      "context": "User timezone is America/Los_Angeles. The active legacy schema exposes a file-only third_party_file scope, but no supported discovery route establishes access to Slack messages.",
+      "expected_output": "Explain that the active connection cannot establish the requested Slack-message capability.",
+      "assertions": [
+        "Did not invent source slack, repurpose native Zoom chat, or send unscoped Ask",
+        "Did not infer live message support from the mere presence of a file scope",
+        "Reported the connection limitation without asserting that Slack has no matching messages or was never connected"
+      ]
+    },
+    {
+      "id": 9,
+      "eval_name": "timeout-retry-preserves-source-and-stops",
+      "prompt": "In Snowflake, get the balance and currency of account A000123.",
+      "context": "Current schema. The capability tool has already returned Snowflake for Zoom as the authorized source for alias Snowflake in this session. Every subsequent Ask returns a timeout.",
+      "tool_responses": [
+        {
+          "tool": "ask",
+          "request_contains": {"datasources": [{"datasource": "third_party_apps", "source": ["Snowflake for Zoom"]}]},
+          "response": {"isError": true, "content": [{"type": "text", "text": "MCP request timed out"}]}
+        },
+        {
+          "tool": "ask",
+          "request_contains": {"datasources": [{"datasource": "third_party_apps", "source": ["Snowflake for Zoom"]}]},
+          "response": {"isError": true, "content": [{"type": "text", "text": "MCP request timed out"}]}
+        }
+      ],
+      "expected_output": "At most one retry of the short scoped Ask, then report the unresolved request.",
+      "assertions": [
+        "Every Ask retained Snowflake for Zoom, account A000123, balance and currency",
+        "Made at most two Ask attempts and did not recursively retry or rediscover unchanged sources",
+        "Did not use Search, unscoped Ask or another source as timeout recovery",
+        "Did not interpret timeout as no account found or a disconnected app"
+      ]
+    },
+    {
+      "id": 10,
+      "eval_name": "native-meeting-with-app-topic",
+      "prompt": "Find my Zoom meetings about the Salesforce outage, with meeting links.",
+      "expected_output": "Search native meeting records; Salesforce is a topic, not the requested source.",
+      "assertions": [
+        "Used native Zoom meeting Search with the Salesforce-outage topic",
+        "Did not select the Salesforce third-party source or require Ask solely because Salesforce was mentioned"
+      ]
+    },
+    {
+      "id": 11,
+      "eval_name": "ambiguous-business-record-source",
+      "prompt": "Count the accounts created in June 2026.",
+      "context": "User timezone is America/Los_Angeles. No conversation context identifies the app; both Salesforce and Snowflake are available and contain accounts.",
+      "expected_output": "Ask which app or dataset the user intends before querying account data.",
+      "assertions": [
+        "Did not infer Snowflake or Salesforce solely from the word accounts",
+        "Did not query both apps or broaden the request without user scope",
+        "Asked for the missing source rather than claiming the task is unsupported"
+      ]
+    },
+    {
+      "id": 12,
+      "eval_name": "discovery-error-is-not-disconnection",
+      "prompt": "Find my Workday expense report approvals.",
+      "context": "The supported capability call returned a generic 400 validation error without evidence about connected or authorized app sources.",
+      "tool_responses": [
+        {
+          "tool": "search_describe_capabilities",
+          "request_contains": {"tool": "ask"},
+          "response": {"isError": true, "content": [{"type": "text", "text": "400: Invalid request parameters"}]}
+        }
+      ],
+      "expected_output": "Report the discovery failure without diagnosing disconnection or querying guessed sources.",
+      "assertions": [
+        "Did not claim Workday was disconnected or lacked authorization based on a generic 400",
+        "Did not guess a Workday source or fall back to default scope"
+      ]
+    }
+  ]
+}

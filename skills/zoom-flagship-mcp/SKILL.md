@@ -19,7 +19,7 @@ This skill is the entry point for Zoom requests in this plugin. Decide what the 
 
 | The request | Route |
 |---|---|
-| Find, list, count or look up records, or ask a question about what the user discussed, decided, scheduled or was sent, using `search`, `search_describe_capabilities` or `ask`. This includes calendar reads, third-party apps, filters, paging, time zones and Ask errors. | Invoke the `zoom-search` skill (`zoom-plugin:zoom-search`) before calling those tools. |
+| Find, list, count or look up records, or ask a question about what the user discussed, decided, scheduled or was sent, using `search`, `search_describe_capabilities` or `ask`. This includes calendar reads, connected Slack, Snowflake, Salesforce, ServiceNow, Workday and SharePoint content, business-record analytics, filters, paging, time zones and Ask errors. | Invoke the `zoom-search` skill (`zoom-plugin:zoom-search`) before calling those tools. |
 | Read one named recording, note, doc or sheet; create a doc or sheet; schedule, change or cancel a meeting; share or unshare a doc; control a live meeting. | Stay in this skill: "Pick the tool", "Common sequences" and "Writes". |
 | A request that does both, such as finding a meeting and then rescheduling it. | Use `zoom-search` to find it, then this skill's "Writes" to change it. |
 
