@@ -181,7 +181,9 @@ omitted scope includes `zoom_chat_message`, which ignores `page_size`.
   numbers, which are reused across unrelated meetings. For counts, dates, or occurrence
   lists, retain each distinct `meeting_uuid`; grouping a series does not deduplicate
   its occurrences.
-- Empty `data` means no match: widen once, deliberately; never repeat the same call.
+- Empty `data` means no match for the submitted constraints. Report no results;
+  do not retry, widen the query, drop filters, change sources, or use Ask to
+  override that result unless the user changes the request.
 - "Docs I created": `created_by: "@me"`. Auto-created meeting-notes docs dominate;
   authored ones differ in `ancestors`, or have `modify_time` ≠ `create_time`.
 
