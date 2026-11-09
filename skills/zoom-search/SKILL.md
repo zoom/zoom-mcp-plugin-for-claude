@@ -1,8 +1,6 @@
 ---
 name: zoom-search
 description: "Searches and answers questions over the user's own Zoom Workplace — meetings, transcripts, summaries, Team Chat, Zoom Docs, My Notes, calendar, Zoom Phone — and apps connected through Zoom, including Slack, Snowflake, Salesforce, ServiceNow, Workday, and SharePoint. Uses the Zoom connector's `search`, `search_describe_capabilities`, and `ask` tools. Use for discussions, decisions, schedules, messages, documents, business records, counts, and grouped analytics in these connected sources, even without the words Zoom or search: \"what did we decide about X\", \"count Snowflake accounts by month and MRR band\", \"find Slack messages from April 9\", \"check my Workday expense approvals\", \"find the SharePoint deck link\". Prefer connected evidence over memory or local files. Read-only: not for creating, sending, scheduling, downloading, or editing anything, or for developing integrations."
-metadata:
-  version: "1.0.1"
 ---
 
 # Zoom Workplace Search
