@@ -88,11 +88,16 @@ that the app is unavailable. Do not require an app-specific tool or SQL executor
 
 **Indexed content examples**
 
+Indexed connector types `google` and `microsoft` commonly appear as Google Drive
+and OneDrive. The `others` type covers other indexed content when exposed by Ask
+discovery; it is not a catch-all scope for every source.
+
 | Indexed source examples | Retrieval pattern to preserve in Ask's `query` |
 |---|---|
 | Google Drive, OneDrive, SharePoint, Box | Find, summarize, or link indexed documents and files. Preserve title, folder or path, owner, date, and requested content or link. |
 | Confluence, Website, S3 | Find or explain indexed pages, articles, and files. Preserve page title, space, site, bucket or object path when supplied. |
 | Salesforce, ServiceNow, Zendesk, Seismic, Workday | Retrieve knowledge articles, reports, and other indexed content, preserving the requested artifact and its context. An indexed document is not proof of current live record state. |
+| Other indexed sources (`others`) | Find, summarize, or link indexed content using its discovered source name and the user's document or topic constraints. |
 
 **Live app/API examples**
 
@@ -110,7 +115,7 @@ A provider may supply indexed and live content; keep both on the same Ask route
 without requiring the user to choose a retrieval backend. Indexed source options
 may use connection-specific display names. Match discovery's `name`/`alias` options
 and submit the returned `name` unchanged, rather than hard-coding a provider name
-or internal key such as `google_drive`. Do not assume live access from indexed
+or internal connector type such as `google`, `microsoft`, or `others`. Do not assume live access from indexed
 availability alone. Keep identifiers literal, including leading zeros. Put the
 complete task and its constraints in `query`; do not convert business predicates
 into invented Search filters or SQL.
