@@ -36,11 +36,11 @@ alone do not uniquely identify a provider. Ask which source when it remains ambi
 ### Choose the datasources
 
 The datasource names below are routing examples, not a list of available sources.
-With the current schema, discover native Search datasources with `tool=search`
+Discover native Search datasources with `tool=search`
 and Ask datasources with `tool=ask`; use the corresponding response's `data` keys
 as datasource names. Reuse discovery only for the same caller and tool. For
 third-party Ask, match the app using Ask discovery's `name`/`alias` options and
-submit the returned `name` in `source` (§2), not Search metadata. Legacy discovery follows §2.
+submit the returned `name` in `source` (§2), not Search metadata.
 
 | Requested artifact | Example datasource |
 |---|---|
@@ -115,10 +115,9 @@ availability alone. Keep identifiers literal, including leading zeros. Put the
 complete task and its constraints in `query`; do not convert business predicates
 into invented Search filters or SQL.
 
-1. Inspect the active tool schema. With the current schema, discover with `tool=ask`,
-   match the user's app against each entry's `name` and `alias`, and send the matching
-   `name`s. Do not invent source values from aliases, citation metadata, or hostnames.
-   A complete request is:
+1. Discover with `tool=ask`, match the user's app against each entry's `name` and
+   `alias`, and send the matching `name`s. Do not invent source values from aliases,
+   citation metadata, or hostnames. A complete request is:
 
    ```json
    {
@@ -129,15 +128,9 @@ into invented Search filters or SQL.
 
    `datasources` is an array of objects, not a JSON-encoded string. Do not substitute
    a top-level `sources` parameter. For a document lookup, ask for the link.
-2. An older connection may expose `third_party_file` and a string `source` instead.
-   Use that shape only when the active Ask schema and its source discovery support
-   the requested app; use the discovery parameters that schema accepts. A legacy
-   file scope alone does not prove access to live Slack or business records. If no
-   supported discovery route exists, explain the connection limitation rather than
-   inventing a source or treating absence of `third_party_apps` as a disconnected app.
-   If supported discovery reports no matching or authorized Ask source, explain the
-   limitation. For other discovery errors, report that discovery failed; do not
-   diagnose disconnection from a generic 400. Never broaden to the default scope.
+2. If Ask source discovery finds no matching authorized source or fails, explain
+   the limitation. Do not guess a source, diagnose disconnection from a generic
+   400, or silently broaden to the default scope.
 3. **A trailing authorization notice**, with or without citations → reported access to
    the named app is incomplete or requires authorization/reauthorization. The connector
    appends a standalone block at the end of `message.content`: the literal header
@@ -160,8 +153,8 @@ into invented Search filters or SQL.
 
 - Use top-level `query` for text matching; `match` filters return 400 even when the
   installed connector schema advertises them.
-- Reuse native Search field definitions discovered with `tool=search` when the
-  installed schema supports that parameter. For Ask source discovery, follow §2.
+- Reuse native Search field definitions discovered with `tool=search`.
+  For Ask source discovery, follow §2.
 - For native Search, no datasource filters by host or sender — filter returned records client-side. The
   exceptions: `calendar.organizer_email` (an email, not a name) and `created_by: "@me"`
   (the caller only).
