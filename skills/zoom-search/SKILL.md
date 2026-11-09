@@ -41,8 +41,8 @@ The datasource names below are routing examples, not a list of available sources
 With the current schema, discover native Search datasources with `tool=search`
 and Ask datasources with `tool=ask`; use the corresponding response's `data` keys
 as datasource names. Reuse discovery only for the same caller and tool. For
-third-party Ask, select `source` names from the Ask discovery's `name`/`alias`
-options as in §2, not from Search metadata. Legacy discovery follows §2.
+third-party Ask, match the app using Ask discovery's `name`/`alias` options and
+submit the returned `name` in `source` (§2), not Search metadata. Legacy discovery follows §2.
 
 | Requested artifact | Example datasource |
 |---|---|
