@@ -38,7 +38,11 @@ alone do not uniquely identify a provider. Ask which source when it remains ambi
 ### Choose the datasources
 
 The datasource names below are routing examples, not a list of available sources.
-Follow each tool's discovery instructions and use only datasource names returned by `search_describe_capabilities`.
+With the current schema, discover native Search datasources with `tool=search`
+and Ask datasources with `tool=ask`; use the corresponding response's `data` keys
+as datasource names. Reuse discovery only for the same caller and tool. For
+third-party Ask, select `source` names from the Ask discovery's `name`/`alias`
+options as in §2, not from Search metadata. Legacy discovery follows §2.
 
 | Requested artifact | Example datasource |
 |---|---|
