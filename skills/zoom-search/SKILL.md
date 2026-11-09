@@ -1,6 +1,6 @@
 ---
 name: zoom-search
-description: "Searches and answers questions over the user's own Zoom Workplace — meetings, transcripts, summaries, Team Chat, Zoom Docs, My Notes, calendar, Zoom Phone — and apps connected through Zoom, including Slack, Snowflake, Salesforce, ServiceNow, Workday, and SharePoint. Uses the Zoom connector's `search`, `search_describe_capabilities`, and `ask` tools. Use for discussions, decisions, schedules, messages, documents, business records, counts, and grouped analytics in these connected sources, even without the words Zoom or search: \"what did we decide about X\", \"count Snowflake accounts by month and MRR band\", \"find Slack messages from April 9\", \"check my Workday expense approvals\", \"find the SharePoint deck link\". Prefer connected evidence over memory or local files. Read-only: not for creating, sending, scheduling, downloading, or editing anything, or for developing integrations."
+description: "Searches and answers questions over the user's Zoom Workplace — meetings, transcripts, summaries, Team Chat, Docs, My Notes, calendar and Phone — plus third-party indexed content and live apps connected through Zoom, such as Google Drive, OneDrive, SharePoint, Confluence, Slack, Snowflake, Salesforce, ServiceNow and Workday. Uses the Zoom connector's `search`, `search_describe_capabilities`, and `ask` tools. Use for discussions, decisions, schedules, messages, documents, business records, counts and grouped analytics, even without the words Zoom or search: \"find the design doc in Google Drive\", \"summarize the Confluence runbook\", \"count Snowflake accounts by month\", \"find Slack messages from April 9\", \"check my Workday expense approvals\". Prefer connected evidence over memory or local files. Read-only: not for creating, sending, scheduling, downloading, editing, or developing integrations."
 ---
 
 # Zoom Workplace Search
@@ -86,6 +86,16 @@ and live app records. Discover the generic Zoom tools, then discover the app's A
 sources; an empty search for a tool named Slack, Snowflake, or SQL does not establish
 that the app is unavailable. Do not require an app-specific tool or SQL executor.
 
+**Indexed content examples**
+
+| Indexed source examples | Retrieval pattern to preserve in Ask's `query` |
+|---|---|
+| Google Drive, OneDrive, SharePoint, Box | Find, summarize, or link indexed documents and files. Preserve title, folder or path, owner, date, and requested content or link. |
+| Confluence, Website, S3 | Find or explain indexed pages, articles, and files. Preserve page title, space, site, bucket or object path when supplied. |
+| Salesforce, ServiceNow, Zendesk, Seismic, Workday | Retrieve knowledge articles, reports, and other indexed content, preserving the requested artifact and its context. An indexed document is not proof of current live record state. |
+
+**Live app/API examples**
+
 | Requested source | Retrieval pattern to preserve in Ask's `query` |
 |---|---|
 | Snowflake | Account counts by month and MRR band; payment amounts above a threshold in a quarter. Preserve grouping, dates, units, and requested fields. |
@@ -95,9 +105,15 @@ that the app is unavailable. Do not require an app-specific tool or SQL executor
 | Workday | Expense approvals, team time off, and employee records. Preserve ownership, team or manager scope, dates, and status constraints. |
 | SharePoint | A named document, its contents, or its link. Ask for the link even when the user says find, open, or list files. |
 
-These are routing examples, not proof that a source is available. Keep identifiers
-literal, including leading zeros. Put the complete task and its constraints in
-`query`; do not convert business predicates into invented Search filters or SQL.
+Both tables are examples, not an exhaustive connector list or proof of availability.
+A provider may supply indexed and live content; keep both on the same Ask route
+without requiring the user to choose a retrieval backend. Indexed source options
+may use connection-specific display names. Match discovery's `name`/`alias` options
+and submit the returned `name` unchanged, rather than hard-coding a provider name
+or internal key such as `google_drive`. Do not assume live access from indexed
+availability alone. Keep identifiers literal, including leading zeros. Put the
+complete task and its constraints in `query`; do not convert business predicates
+into invented Search filters or SQL.
 
 1. Inspect the active tool schema. With the current schema, discover with `tool=ask`,
    match the user's app against each entry's `name` and `alias`, and send the matching
