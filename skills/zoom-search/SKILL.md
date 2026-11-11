@@ -1,6 +1,6 @@
 ---
 name: zoom-search
-description: "Searches and answers questions over the user's Zoom Workplace — meetings, transcripts, summaries, Team Chat, Docs, My Notes, calendar and Phone — plus third-party indexed content and live apps connected through Zoom, such as Google Drive, OneDrive, SharePoint, Confluence, Slack, Snowflake, Salesforce, ServiceNow and Workday. Uses the Zoom connector's `search`, `search_describe_capabilities`, and `ask` tools. Use for discussions, decisions, schedules, messages, documents, business records, counts and grouped analytics, even without the words Zoom or search: \"find the design doc in Google Drive\", \"summarize the Confluence runbook\", \"count Snowflake accounts by month\", \"find Slack messages from April 9\", \"check my Workday expense approvals\". Prefer connected evidence over memory or local files. Read-only: not for creating, sending, scheduling, downloading, editing, or developing integrations."
+description: "Searches and answers questions over the user's Zoom Workplace meetings, chats, documents, calendar, notes and calls, plus apps connected through Zoom (e.g. Slack, Snowflake and Google Drive; confirm availability through discovery). Use when an answer depends on what the user discussed, decided, scheduled, shared or stored, including business records, counts and grouped analytics. Read-only: not for creating, sending, scheduling, downloading, editing, or developing integrations."
 ---
 
 # Zoom Workplace Search
@@ -25,13 +25,15 @@ examples and retrieval guidance. Answer retrieval questions with these three too
 - Calendar or schedule → `search` on `calendar` when available. `ask` has no calendar
   scope and cannot answer reliably from calendar data.
 - Meaning about one specific Zoom meeting or Zoom Doc, including decisions or owners → `search`
-  to pin it (§5), then `ask` with the artifact named in `query` and the relevant
-  discovered datasource scopes (a third-party record: §2).
+  to identify the specific artifact or occurrence, then `ask` with the artifact
+  named in `query` and the relevant discovered datasource scopes (a third-party
+  record: §2).
 
 Route by the requested artifact, not every app name in the sentence: "find my Zoom
-meetings about the Salesforce outage" requests Zoom meeting records. Use an app
-established by the user or conversation; account, payment, channel, or ticket terms
-alone do not uniquely identify a provider. Ask which source when it remains ambiguous.
+meetings about the Salesforce outage" requests Zoom meeting records. For third-party
+content, use an app established by the user or conversation. Record types alone do
+not identify a provider; if it remains unclear, ask which source before retrieval
+rather than trying unrelated available apps.
 
 ### Choose the datasources
 
@@ -83,37 +85,27 @@ apps a user can reach, and in which form, varies by user and account — only
 
 Use Ask for connected third-party content, including indexed documents, links,
 and live app records. Discover the generic Zoom tools, then discover the app's Ask
-sources; an empty search for a tool named Slack, Snowflake, or SQL does not establish
-that the app is unavailable. Do not require an app-specific tool or SQL executor.
+sources; an empty search for a provider-specific tool does not establish that the
+app is unavailable. Do not require an app-specific tool or SQL executor.
 
-**Indexed content examples**
+Preserve the requested task in Ask's `query`, regardless of provider:
 
-| Indexed source examples | Retrieval pattern to preserve in Ask's `query` |
+| Query detail | What to preserve |
 |---|---|
-| Google Drive, OneDrive, SharePoint | Find, summarize, or link indexed documents and files. Preserve title, folder or path, owner, date, and requested content or link. |
-| Confluence, Web Crawler, S3 Blob | Find or explain indexed pages, articles, and files. Preserve page title, space, site, bucket or object path when supplied. |
-| Salesforce, ServiceNow, Zendesk, Seismic, Workday | Retrieve knowledge articles, reports, and other indexed content, preserving the requested artifact and its context. An indexed document is not proof of current live record state. |
+| Identifiers and object scope | Literal IDs, including leading zeros; the requested object type and related-record scope. Keep messages distinct from threads, incidents from all ticket types, and a subscription's charges from account-wide records. |
+| Content and location | Titles, exact quoted text, space, site, folder, bucket or object path, channel, sender and owner. |
+| Business predicates | Status, priority, amount thresholds, currency and units, exclusions, and caller, team or manager scope. |
+| Time | Date windows, inclusive/exclusive boundaries and relative time phrases. Supply the user's timezone as described in §5. |
+| Counts and grouping | The measure and whether it is distinct, grouping dimensions such as month and monthly MRR band, and requested zero-count groups. |
+| Output and ordering | Requested fields, oldest/newest ordering, number of results, and requested document or record links. |
 
-**Live app/API examples**
-
-| Requested source | Retrieval pattern to preserve in Ask's `query` |
-|---|---|
-| Snowflake | Account counts by month and MRR band; payment amounts above a threshold in a quarter. Preserve grouping, dates, units, and requested fields. |
-| Slack | Exact messages, threads, counts, and links by channel, sender, date, or quoted text. Preserve oldest/newest ordering and requested number of messages. |
-| Salesforce | Agreement status, registration activities, subscriptions, and charges by exact ID. Preserve the requested object and related-record scope. |
-| ServiceNow | Policy or knowledge-article lookups and incident counts by priority and period. Do not expand incidents into all ticket types. |
-| Workday | Expense approvals, team time off, and employee records. Preserve ownership, team or manager scope, dates, and status constraints. |
-| SharePoint | A named document, its contents, or its link. Ask for the link even when the user says find, open, or list files. |
-
-Both tables are examples, not an exhaustive connector list or proof of availability.
 A provider may supply indexed and live content; keep both on the same Ask route
-without requiring the user to choose a retrieval backend. Indexed source options
-may use connection-specific display names. Match discovery's `name`/`alias` options
-and submit the returned `name` unchanged, rather than hard-coding a provider name
-or internal index key. Do not assume live access from indexed availability alone.
-Keep identifiers literal, including leading zeros. Put the
-complete task and its constraints in `query`; do not convert business predicates
-into invented Search filters or SQL.
+without requiring the user to choose a retrieval backend. An indexed document is
+not proof of current live record state. Source options may use connection-specific
+display names. Match discovery's `name`/`alias` options and submit the returned
+`name` unchanged, rather than hard-coding a provider name or internal index key.
+Put the complete task and its constraints in `query`; do not convert business
+predicates into invented Search filters or SQL.
 
 1. Discover with `tool=ask`, match the user's app against each entry's `name` and
    `alias`, and send the matching `name`s. Do not invent source values from aliases,
@@ -129,8 +121,9 @@ into invented Search filters or SQL.
    `datasources` is an array of objects, not a JSON-encoded string. Do not substitute
    a top-level `sources` parameter. For a document lookup, ask for the link.
 2. If Ask source discovery finds no matching authorized source or fails, explain
-   the limitation. Do not guess a source, diagnose disconnection from a generic
-   400, or silently broaden to the default scope.
+   the limitation and make no Search or Ask retrieval call for that request. Do not
+   use other discovered apps as a fallback, guess a source, diagnose disconnection
+   from a generic 400, or silently broaden to the default scope.
 3. **A trailing authorization notice**, with or without citations → reported access to
    the named app is incomplete or requires authorization/reauthorization. The connector
    appends a standalone block at the end of `message.content`: the literal header
@@ -203,11 +196,12 @@ omitted scope includes `zoom_chat_message`, which ignores `page_size`.
 ## 5. Time
 
 - Relative or local times (today, tomorrow, last week, a clock time with no offset)
-  need the user's IANA zone, taken from what they said or from client context
-  (`readlink /etc/localtime | sed 's|.*zoneinfo/||'` on macOS/Linux, only when the
-  agent runs on the user's own machine). If it is unavailable, is `UTC` / `Etc/*`, or
-  may belong to a remote host or container, ask the user and wait before calling
-  `search` or `ask`; never guess. Pass it to `ask` as `user_context.timezone`.
+  need the user's IANA zone, taken from explicit user input or trusted client context.
+  Do not infer it from the agent's host or sandbox. If the user has not provided a
+  zone and the client value is unavailable, is `UTC` / `Etc/*`, or may describe a
+  remote host or container, ask once and wait before calling `search` or `ask`;
+  never guess. Reuse the user's answer unless they change it. Pass the zone to
+  `ask` as `user_context.timezone`.
 - A named meeting may fall on a different local day for a distributed team: search by
   topic first and pick the occurrence; if you need a window, pad it by a day each side.
 - For person- or week-scoped enumeration, query a superset window, bucket client-side,
