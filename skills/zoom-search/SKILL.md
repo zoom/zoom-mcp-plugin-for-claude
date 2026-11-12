@@ -1,6 +1,6 @@
 ---
 name: zoom-search
-description: "Searches and answers questions over the user's Zoom Workplace — meetings, transcripts, summaries, Team Chat, Docs, My Notes, calendar and Phone — plus third-party indexed content and live apps connected through Zoom, such as Google Drive, OneDrive, SharePoint, Confluence, Slack, Snowflake, Salesforce, ServiceNow and Workday. Uses the Zoom connector's `search`, `search_describe_capabilities`, and `ask` tools. Use for discussions, decisions, schedules, messages, documents, business records, counts and grouped analytics, even without the words Zoom or search: \"find the design doc in Google Drive\", \"summarize the Confluence runbook\", \"count Snowflake accounts by month\", \"find Slack messages from April 9\", \"check my Workday expense approvals\". Prefer connected evidence over memory or local files. Read-only: not for creating, sending, scheduling, downloading, editing, or developing integrations."
+description: "Searches and answers questions about the user's accessible workplace knowledge and business data through Zoom, including Zoom content and connected third-party sources. Use for documents, messages, meetings, decisions, schedules, project status, business records, and supported counts or grouped analytics, even when the user names another app without saying Zoom or search. Discover available sources with `search_describe_capabilities`, then use `search` or `ask` as routed below; no fixed app list is required. Prefer connected evidence for workplace questions; use local files or public sources for questions outside that scope. Read-only: not for creating, sending, scheduling, downloading, editing, or developing integrations."
 ---
 
 # Zoom Workplace Search
@@ -16,6 +16,9 @@ examples and retrieval guidance. Answer retrieval questions with these three too
 
 ### Choose the tool
 
+- **Discover unfamiliar apps:** for a workplace retrieval question about an app,
+  check Ask source discovery (§2) before declaring it unavailable through Zoom.
+  The app need not be named in this skill or have an app-specific MCP tool.
 - **Third-party content first:** if the requested records, messages, documents, or
   answers belong to an app connected through Zoom, use §2's Ask route, including
   find, list, count, exact-ID, and link requests. This takes precedence over the
@@ -29,9 +32,12 @@ examples and retrieval guidance. Answer retrieval questions with these three too
   discovered datasource scopes (a third-party record: §2).
 
 Route by the requested artifact, not every app name in the sentence: "find my Zoom
-meetings about the Salesforce outage" requests Zoom meeting records. Use an app
+meetings about an outage in our CRM" requests Zoom meeting records. Use an app
 established by the user or conversation; account, payment, channel, or ticket terms
-alone do not uniquely identify a provider. Ask which source when it remains ambiguous.
+alone do not uniquely identify a provider. For a broad workplace question without a
+specified app, use established context or leave Ask unscoped when its contract
+supports that scope. Ask which source when choosing one would materially change
+the request. Never drop an explicit source restriction to broaden retrieval.
 
 ### Choose the datasources
 
@@ -48,7 +54,7 @@ submit the returned `name` in `source` (§2), not Search metadata.
 | Authorized notes and attendee-side transcripts from Zoom, third-party or in-person meetings | `zoom_my_notes` |
 | Schedules and calendar events | `calendar` (Search only) |
 | Zoom Team Chat groups and channels | `zoom_chat_session` |
-| Zoom Team Chat message content (not connected Slack messages) | `zoom_chat_message` |
+| Zoom Team Chat message content (not messages from a connected third-party chat app) | `zoom_chat_message` |
 | Zoom Docs | `zoom_canvas` |
 | Phone call records, SMS, voicemail | `zoom_phone_call`, `zoom_phone_sms`, `zoom_phone_voicemail`, respectively |
 | Connected files and live app records | `third_party_apps` via Ask (see §2) |
@@ -77,38 +83,32 @@ has not limited the evidence to one source. The meeting/calendar pairing is Sear
 ## 2. Third-party apps
 
 `third_party_apps` covers apps connected through Zoom, in two forms: **indexed**
-(content Zoom has indexed) and **live** (API calls to the app at question time). Which
-apps a user can reach, and in which form, varies by user and account — only
-`search_describe_capabilities` knows.
+(content Zoom has indexed) and **live** (API calls to the app at question time).
+Available sources vary by user and account. Treat `search_describe_capabilities`
+as the runtime source catalog, not app names mentioned in this skill or prior knowledge.
+New apps use the same discovery and Ask route without a per-app instruction here.
 
 Use Ask for connected third-party content, including indexed documents, links,
 and live app records. Discover the generic Zoom tools, then discover the app's Ask
-sources; an empty search for a tool named Slack, Snowflake, or SQL does not establish
-that the app is unavailable. Do not require an app-specific tool or SQL executor.
+sources; an empty search for an app-specific tool or SQL executor does not establish
+that the app is unavailable. Neither is required for this route.
 
-**Indexed content examples**
+**Retrieval patterns across connected apps**
 
-| Indexed source examples | Retrieval pattern to preserve in Ask's `query` |
+| Requested information | Constraints to preserve in Ask's `query` |
 |---|---|
-| Google Drive, OneDrive, SharePoint | Find, summarize, or link indexed documents and files. Preserve title, folder or path, owner, date, and requested content or link. |
-| Confluence, Web Crawler, S3 Blob | Find or explain indexed pages, articles, and files. Preserve page title, space, site, bucket or object path when supplied. |
-| Salesforce, ServiceNow, Zendesk, Seismic, Workday | Retrieve knowledge articles, reports, and other indexed content, preserving the requested artifact and its context. An indexed document is not proof of current live record state. |
+| Documents, pages, articles, or files | Title, folder, space, site, bucket or object path, owner, dates, and requested content or link. Ask for the link even when the user says find, open, or list files. |
+| Messages or discussions | Channel, sender, participants, quoted text, time range, thread scope, oldest/newest ordering, and requested number of messages. |
+| Business records or related records | Object type, exact identifiers, requested fields, ownership, team or manager scope, status, and related-record scope. Do not expand a requested record type into all record types. |
+| Counts or grouped analysis | Population, grouping, dates, numeric thresholds, units, and requested fields. |
+| Explanations, summaries, or comparisons | Topic, named artifacts, evidence scope, and the requested question or comparison. |
 
-**Live app/API examples**
-
-| Requested source | Retrieval pattern to preserve in Ask's `query` |
-|---|---|
-| Snowflake | Account counts by month and MRR band; payment amounts above a threshold in a quarter. Preserve grouping, dates, units, and requested fields. |
-| Slack | Exact messages, threads, counts, and links by channel, sender, date, or quoted text. Preserve oldest/newest ordering and requested number of messages. |
-| Salesforce | Agreement status, registration activities, subscriptions, and charges by exact ID. Preserve the requested object and related-record scope. |
-| ServiceNow | Policy or knowledge-article lookups and incident counts by priority and period. Do not expand incidents into all ticket types. |
-| Workday | Expense approvals, team time off, and employee records. Preserve ownership, team or manager scope, dates, and status constraints. |
-| SharePoint | A named document, its contents, or its link. Ask for the link even when the user says find, open, or list files. |
-
-Both tables are examples, not an exhaustive connector list or proof of availability.
-A provider may supply indexed and live content; keep both on the same Ask route
-without requiring the user to choose a retrieval backend. Indexed source options
-may use connection-specific display names. Match discovery's `name`/`alias` options
+These patterns describe retrieval intent, not a promise that every source supports
+every operation or has live data. Use capability metadata where provided and report
+unsupported operations from Ask's response. Indexed content does not establish the
+current state of a live record. A provider may supply indexed and live content;
+keep both on the same Ask route without requiring the user to choose a backend.
+Source options may use connection-specific display names. Match discovery's `name`/`alias` options
 and submit the returned `name` unchanged, rather than hard-coding a provider name
 or internal index key. Do not assume live access from indexed availability alone.
 Keep identifiers literal, including leading zeros. Put the
