@@ -215,10 +215,11 @@ omitted scope includes `zoom_chat_message`, which ignores `page_size`.
 
 ## 6. `ask` answers
 
-- Send the user's task with minimal rewriting, preserving people, asset terms,
-  negations, dates and requested output. Add only context needed to resolve references.
-  Do not append unrequested field lists, summaries or filter conditions: wording can
-  change retrieval and synthesis.
+- Copy a self-contained user request into Ask's `query` verbatim, excluding the skill
+  invocation. Do not paraphrase, translate or append questions, fields, summaries or
+  filters. Resolve only genuine references with verified context, retaining original
+  dates, constraints and requested output on every call. Pinning a candidate with
+  Search does not authorize adding questions about decisions, owners or next steps.
 - `ask` grows with its citation count; scope it when the evidence scope is known
   and supported by discovery. Keep a broad question unscoped rather than inventing
   a scope just to reduce citations.

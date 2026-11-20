@@ -6,7 +6,7 @@ This plugin continues [zoom/zoom-plugin-claude](https://github.com/zoom/zoom-plu
 
 ## 2.0.2
 
-- preserve the user's Ask query intent and avoid adding unrequested field lists, summaries or filters
+- pass self-contained Ask queries verbatim and preserve original constraints when resolving references
 
 ## 2.0.1
 
