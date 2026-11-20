@@ -20,13 +20,23 @@ examples and retrieval guidance. Answer retrieval questions with these three too
   answers belong to an app connected through Zoom, use §2's Ask route, including
   find, list, count, exact-ID, and link requests. This takes precedence over the
   verb-based rules below.
-- For native Zoom content: meaning (what, why, summarize, status, decisions, owners) → `ask`. Records (find,
-  list, count, open, link, IDs) → `search`. Torn → `ask`.
-- Calendar or schedule → `search` on `calendar` when available. `ask` has no calendar
-  scope and cannot answer reliably from calendar data.
-- Meaning about one specific Zoom meeting or Zoom Doc, including decisions or owners → `search`
-  to pin it (§5), then `ask` with the artifact named in `query` and the relevant
-  discovered datasource scopes (a third-party record: §2).
+- For native Zoom content: meaning (what, why, summarize, status, decisions, owners) → `ask`.
+  Records (find, list, count, open, link, IDs) → `search` when its discovered fields
+  and coverage can express the request. Route by capability before the request's verb.
+- **Meeting predicates Search cannot express:** use `ask` with the original task for
+  host/participant names, actual attendance, external attendees, continuous meeting
+  chat, cancelled meetings, or webinars. Discover Ask's `zoom_meeting` scope first;
+  these requests may need its meeting agent even when the user says find or list.
+  Ask's synthesis is not a pageable or exhaustive record set.
+- Explicit calendar records or scheduled times → `search` on `calendar` when its
+  discovered capabilities cover the request.
+  For meeting or schedule requests needing the meeting predicates above, use Ask's
+  `zoom_meeting` route, which can consult calendar bookings. There is no separate
+  Ask `calendar` scope; do not infer that calendar evidence is unavailable.
+- Meaning about one specific Zoom meeting or Zoom Doc, including decisions or owners →
+  `search` to pin it (§5) when Search can identify it, then `ask` with the artifact
+  named in `query` and the relevant discovered datasource scopes. Otherwise send
+  the original task and identifiers to Ask (a third-party record: §2).
 
 Route by the requested artifact, not every app name in the sentence: "find my Zoom
 meetings about the Salesforce outage" requests Zoom meeting records. Use an app
@@ -155,16 +165,20 @@ into invented Search filters or SQL.
   installed connector schema advertises them.
 - Reuse native Search field definitions discovered with `tool=search`.
   For Ask source discovery, follow §2.
-- For native Search, no datasource filters by host or sender — filter returned records client-side. The
-  exceptions: `calendar.organizer_email` (an email, not a name) and `created_by: "@me"`
-  (the caller only).
+- For native Search, no datasource filters by host or sender. The exceptions:
+  `calendar.organizer_email` (an email, not a name) and `created_by: "@me"` (the caller
+  only). Meeting text search does not match host/attendee names; use the meeting Ask
+  route above rather than putting a person's name in Search's text query. Client-side
+  filtering can remove irrelevant records, but cannot recover meetings never retrieved.
 - Third-party sender, ownership, priority, amount, and date constraints belong in
   Ask's `query` (§2), not in the native Search filter or paging workflow.
 - A filter 400 lists the allowed fields (`Field 'X' is not filterable; allowed: [...]`):
   retry once with a listed field, or move the constraint client-side. Don't call
   capabilities again to recover.
-- `has_transcript` / `has_summary` mean the asset exists, not that the user may read
-  it — check the `_permission` twin before promising content.
+- In native Search, `has_transcript` / `has_summary` mean the asset exists, not that
+  the user may read it — check the `_permission` twin before promising content.
+  Do not copy these field names into Ask: its internal slots can include read
+  permission. Preserve the user's distinction between existence and access in plain language.
 
 ## 4. Search budget and traps
 
@@ -205,16 +219,34 @@ omitted scope includes `zoom_chat_message`, which ignores `page_size`.
 - Relative or local times (today, tomorrow, last week, a clock time with no offset)
   need the user's IANA zone, taken from what they said or from client context
   (`readlink /etc/localtime | sed 's|.*zoneinfo/||'` on macOS/Linux, only when the
-  agent runs on the user's own machine). If it is unavailable, is `UTC` / `Etc/*`, or
-  may belong to a remote host or container, ask the user and wait before calling
-  `search` or `ask`; never guess. Pass it to `ask` as `user_context.timezone`.
+  agent runs on the user's own machine). An unconfirmed host default such as `UTC`
+  / `Etc/*`, or a remote host/container zone, does not establish the user's zone.
+  A user-confirmed `UTC` is valid. If the user's zone is unknown, ask and wait before
+  calling `search` or `ask`; never guess. Pass it to `ask` as `user_context.timezone`.
 - A named meeting may fall on a different local day for a distributed team: search by
   topic first and pick the occurrence; if you need a window, pad it by a day each side.
-- For person- or week-scoped enumeration, query a superset window, bucket client-side,
+- For native Search enumeration by week, query a superset window, bucket client-side,
   and say which reading of the phrase you used.
+- Preserve any user-specified as-of timestamp and time zone in Ask's `query`.
+  `user_context.timezone` sets the zone, not the current date; Ask has no public
+  reference-time parameter. A date in the query does not override the backend clock.
+  If that affects coverage or scheduled-versus-actual times, state the limitation;
+  filtering returned rows cannot recover candidates already cut off by retrieval.
 
 ## 6. `ask` answers
 
+- Send the user's task with minimal rewriting; add only context needed to resolve
+  references. Preserve people, roles, asset terms, negations, dates, ordering and
+  requested quantities. Do not redefine notes as My Notes, add a summary/transcript
+  requirement to "no next steps", or change invited/involving into actually attended.
+- Do not append unrequested output columns, summaries, or actual-time/attendance
+  requirements. These can change Ask's retrieval scope, candidate limit, or which
+  evidence survives synthesis; a display request is not necessarily presentation-only.
+  Preserve output requirements the user did specify.
+- Distinguish missing evidence from a false predicate. If Ask omits attendance or
+  asset status, request focused verification when needed; do not claim a match is
+  disproved solely because the synthesis omitted that field. No accessible summary
+  or transcript does not prove that no action items were assigned.
 - `ask` grows with its citation count; scope it when the evidence scope is known
   and supported by discovery. Keep a broad question unscoped rather than inventing
   a scope just to reduce citations.
@@ -225,8 +257,9 @@ omitted scope includes `zoom_chat_message`, which ignores `page_size`.
   empty result or proof the app is disconnected. Do not switch third-party requests
   to Search, drop their source scope, or retry each failure recursively.
 - `ask` returning 403 (license or scope missing) is not transient: make no further
-  `ask` calls in this conversation, retried or rescoped. Find the records with
-  `search` and answer from them, and tell the user `ask` is unavailable to them.
+  `ask` calls in this conversation, retried or rescoped. Use `search` where its
+  capabilities support the request; otherwise report the unresolved constraints.
+  Tell the user `ask` is unavailable to them.
   For connected third-party content (§2), explain that Ask is unavailable.
 - Markers `[^N]` carry no join key. Map `[^N]` to `citations[N-1]` only when the
   distinct markers are exactly `1..len(citations)`, and say the mapping is positional;
