@@ -6,8 +6,7 @@ This plugin continues [zoom/zoom-plugin-claude](https://github.com/zoom/zoom-plu
 
 ## 2.0.2
 
-- route meeting predicates that Search cannot express through Ask, including person, attendance, continuous chat, cancellation and webinar requests
-- preserve the user's Ask query intent, distinguish Search asset fields from Ask semantics, and explain reference-time and incomplete-evidence limits
+- preserve the user's Ask query intent and avoid adding unrequested field lists, summaries or filters
 
 ## 2.0.1
 
