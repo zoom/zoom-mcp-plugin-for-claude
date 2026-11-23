@@ -4,6 +4,10 @@ All notable changes to this plugin are documented in this file.
 
 This plugin continues [zoom/zoom-plugin-claude](https://github.com/zoom/zoom-plugin-claude); entries before 2.0.0 describe that repository.
 
+## 2.0.2
+
+- pass self-contained Ask queries verbatim and preserve original constraints when resolving references
+
 ## 2.0.1
 
 - synced `zoom-search` unmodified with the current enterprise-rag source, including discovery-based datasource routing, Ask-based third-party retrieval, and authorization notices; its metadata version remains 1.0.0 and it can be loaded independently
