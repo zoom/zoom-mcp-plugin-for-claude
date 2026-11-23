@@ -4,6 +4,10 @@ All notable changes to this plugin are documented in this file.
 
 This plugin continues [zoom/zoom-plugin-claude](https://github.com/zoom/zoom-plugin-claude); entries before 2.0.0 describe that repository.
 
+## 2.0.3
+
+- prefer Ask for native Zoom and third-party retrieval, including record lookups, only when `search_describe_capabilities` with `tool=ask` returns boolean `has_ask_tool_permission: true`; otherwise fall back to Search only for native Zoom content
+
 ## 2.0.2
 
 - pass self-contained Ask queries verbatim and preserve original constraints when resolving references
