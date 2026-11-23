@@ -27,17 +27,15 @@ examples and retrieval guidance. Answer retrieval questions with these three too
 
 ### Choose the datasources
 
-Route by the requested artifact, not every app name in the sentence: "find my Zoom
-meetings about the Salesforce outage" requests Zoom meeting records. Use an app
-established by the user or conversation; account, payment, channel, or ticket terms
-alone do not uniquely identify a provider. Ask which source when it remains ambiguous.
-
 The datasource names below are routing examples, not a list of available sources.
 Discover native Search datasources with `tool=search`
 and Ask datasources with `tool=ask`; use the corresponding response's `data` keys
-as datasource names. Reuse discovery only for the same caller and tool. For
-third-party Ask, match the app using Ask discovery's `name`/`alias` options and
-submit the returned `name` in `source` (§2), not Search metadata.
+as datasource names. Reuse discovery only for the same caller and tool.
+
+For third-party Ask, identify the requested app from the task or context, not
+topic mentions or generic business terms; ask if ambiguous. Match the app using
+Ask discovery's `name`/`alias` options and submit the returned `name` in `source`
+(§2), not Search metadata.
 
 | Requested artifact | Example datasource |
 |---|---|
