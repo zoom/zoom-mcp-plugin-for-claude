@@ -22,8 +22,6 @@ examples and retrieval guidance. Answer retrieval questions with these three too
   require top-level boolean `has_ask_tool_permission: true`. Otherwise fall back to
   `search` for native Zoom content; for third-party content, report the limitation
   without using Search.
-- Native Zoom calendar or schedule → `search` on `calendar` when available. `ask` has no calendar
-  scope and cannot answer reliably from calendar data.
 - When a native Zoom named-item read or write requires an exact record ID, use
   `search` to resolve it. Ordinary questions about a meeting or Doc need no preliminary Search.
 
@@ -45,7 +43,7 @@ submit the returned `name` in `source` (§2), not Search metadata.
 |---|---|
 | Host-owned meeting records, summaries, cloud recordings and recording transcripts | `zoom_meeting` |
 | Authorized notes and attendee-side transcripts from Zoom, third-party or in-person meetings | `zoom_my_notes` |
-| Schedules and calendar events | `calendar` (Search only) |
+| Schedules and calendar events | `zoom_meeting` (Ask); `calendar` (Search) |
 | Zoom Team Chat groups and channels | `zoom_chat_session` |
 | Zoom Team Chat message content (not connected Slack messages) | `zoom_chat_message` |
 | Zoom Docs | `zoom_canvas` |
@@ -64,7 +62,7 @@ request; a meeting, person or date used only as a qualifier does not add a datas
 | "Find the transcript of yesterday's design review." | `zoom_my_notes` + `zoom_meeting` | Could be an attendee-side transcript or a cloud-recording transcript; meeting context alone does not distinguish them. |
 
 For explicit requests, keep the corresponding scope: "Show tomorrow's calendar
-events" → `calendar`; "Find Zoom Team Chat messages mentioning Atlas" → `zoom_chat_message`;
+events" → `zoom_meeting` for Ask, `calendar` for Search; "Find Zoom Team Chat messages mentioning Atlas" → `zoom_chat_message`;
 "Find my notes from the design review" → `zoom_my_notes`. Resolve relative Search
 time filters using the tool's time-zone instructions.
 
