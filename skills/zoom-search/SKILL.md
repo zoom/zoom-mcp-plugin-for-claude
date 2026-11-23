@@ -25,12 +25,12 @@ examples and retrieval guidance. Answer retrieval questions with these three too
 - When a native Zoom named-item read or write requires an exact record ID, use
   `search` to resolve it. Ordinary questions about a meeting or Doc need no preliminary Search.
 
+### Choose the datasources
+
 Route by the requested artifact, not every app name in the sentence: "find my Zoom
 meetings about the Salesforce outage" requests Zoom meeting records. Use an app
 established by the user or conversation; account, payment, channel, or ticket terms
 alone do not uniquely identify a provider. Ask which source when it remains ambiguous.
-
-### Choose the datasources
 
 The datasource names below are routing examples, not a list of available sources.
 Discover native Search datasources with `tool=search`
