@@ -6,7 +6,7 @@ This plugin continues [zoom/zoom-plugin-claude](https://github.com/zoom/zoom-plu
 
 ## 2.0.3
 
-- require `search_describe_capabilities` with `tool=ask` to return boolean `has_ask_tool_permission: true` before any Ask call, including follow-ups and retries; otherwise use Search for native Zoom content or report the third-party limitation
+- check Ask permission during tool selection: require boolean `has_ask_tool_permission: true` from `search_describe_capabilities` with `tool=ask` before any Ask call
 
 ## 2.0.2
 

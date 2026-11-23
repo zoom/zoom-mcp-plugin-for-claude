@@ -14,25 +14,12 @@ examples and retrieval guidance. Answer retrieval questions with these three too
 
 ## 1. Route
 
-### Check Ask permission
-
-Before calling `ask`, call `search_describe_capabilities` with `tool=ask` on the
-intended Zoom connection. Call `ask` only when the response's top-level
-`has_ask_tool_permission` is the boolean `true`; `false`, a missing or non-boolean
-value, or failed discovery must block the call. A listed Ask tool, available
-datasources, or successful Search does not establish Ask permission. This gate
-applies to every Ask route below, including unscoped requests, follow-ups, split
-requests, and retries.
-
-Reuse this discovery only within the same conversation for the same caller and
-connection; rediscover after reconnecting or an account or authorization change.
-A later Ask 403 overrides an earlier `true` (§6). If permission is `false`, say
-Ask is unavailable; if it cannot be verified, say so. For native Zoom content,
-fall back to `search` and answer from returned records. For third-party content,
-explain the limitation without switching to Search (§2).
-
 ### Choose the tool
 
+- **Ask permission:** Before any `ask` call, use `search_describe_capabilities` with
+  `tool=ask` on the intended connection and require top-level boolean
+  `has_ask_tool_permission: true`. Otherwise use `search` for native Zoom content;
+  for third-party content, report the limitation (§2).
 - **Third-party content first:** if the requested records, messages, documents, or
   answers belong to an app connected through Zoom, use §2's Ask route, including
   find, list, count, exact-ID, and link requests. This takes precedence over the
@@ -132,8 +119,8 @@ Keep identifiers literal, including leading zeros. Put the
 complete task and its constraints in `query`; do not convert business predicates
 into invented Search filters or SQL.
 
-1. Use the permission-checked `tool=ask` discovery (§1), match the user's app against
-   each entry's `name` and `alias`, and send the matching `name`s. Do not invent source values from aliases,
+1. Discover with `tool=ask`, match the user's app against each entry's `name` and
+   `alias`, and send the matching `name`s. Do not invent source values from aliases,
    citation metadata, or hostnames. A complete request is:
 
    ```json

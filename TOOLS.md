@@ -13,7 +13,7 @@ Tool and scope reference for the one MCP server this plugin bundles. It was chec
 Three tools search and answer across your Zoom content:
 
 - `search`: returns matching records.
-- `search_describe_capabilities`: lists the datasources and filter fields available to you. With `tool=ask`, it also returns the top-level boolean `has_ask_tool_permission`; call `ask` only when this is `true`.
+- `search_describe_capabilities`: lists the datasources and filter fields available to you.
 - `ask`: returns one synthesized answer with citations.
 
 They need `agentic_search:read:search` and `agentic_search:read:ask`. The bundled [`zoom-flagship-mcp` skill](skills/zoom-flagship-mcp/SKILL.md) is the entry point that tells Claude which tool and datasource to use. It routes search and Ask work to the [`zoom-search` skill](skills/zoom-search/SKILL.md). Results are limited to what your Zoom account can already see.
