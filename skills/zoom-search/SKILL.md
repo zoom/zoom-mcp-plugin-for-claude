@@ -16,21 +16,16 @@ examples and retrieval guidance. Answer retrieval questions with these three too
 
 ### Choose the tool
 
-- **Ask permission:** Before any `ask` call, use `search_describe_capabilities` with
-  `tool=ask` on the intended connection and require top-level boolean
-  `has_ask_tool_permission: true`. Otherwise use `search` for native Zoom content;
-  for third-party content, report the limitation (§2).
-- **Third-party content first:** if the requested records, messages, documents, or
-  answers belong to an app connected through Zoom, use §2's Ask route, including
-  find, list, count, exact-ID, and link requests. This takes precedence over the
-  verb-based rules below.
-- For native Zoom content: meaning (what, why, summarize, status, decisions, owners) → `ask`. Records (find,
-  list, count, open, link, IDs) → `search`. Torn → `ask`.
-- Calendar or schedule → `search` on `calendar` when available. `ask` has no calendar
+- **Ask first:** For native Zoom content and third-party content (§2), prefer `ask`,
+  including find, list, count, open, link and synthesis requests. Before any Ask call,
+  use `search_describe_capabilities` with `tool=ask` on the intended connection and
+  require top-level boolean `has_ask_tool_permission: true`. Otherwise fall back to
+  `search` for native Zoom content; for third-party content, report the limitation
+  without using Search.
+- Native Zoom calendar or schedule → `search` on `calendar` when available. `ask` has no calendar
   scope and cannot answer reliably from calendar data.
-- Meaning about one specific Zoom meeting or Zoom Doc, including decisions or owners → `search`
-  to pin it (§5), then `ask` with the artifact named in `query` and the relevant
-  discovered datasource scopes (a third-party record: §2).
+- When a native Zoom named-item read or write requires an exact record ID, use
+  `search` to resolve it. Ordinary questions about a meeting or Doc need no preliminary Search.
 
 Route by the requested artifact, not every app name in the sentence: "find my Zoom
 meetings about the Salesforce outage" requests Zoom meeting records. Use an app
@@ -212,8 +207,8 @@ omitted scope includes `zoom_chat_message`, which ignores `page_size`.
   agent runs on the user's own machine). If it is unavailable, is `UTC` / `Etc/*`, or
   may belong to a remote host or container, ask the user and wait before calling
   `search` or `ask`; never guess. Pass it to `ask` as `user_context.timezone`.
-- A named meeting may fall on a different local day for a distributed team: search by
-  topic first and pick the occurrence; if you need a window, pad it by a day each side.
+- When using Search, a named meeting may fall on a different local day for a distributed
+  team: search by topic first and pick the occurrence; if needed, pad the window by a day each side.
 - For person- or week-scoped enumeration, query a superset window, bucket client-side,
   and say which reading of the phrase you used.
 
