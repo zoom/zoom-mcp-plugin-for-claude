@@ -16,43 +16,32 @@ examples and retrieval guidance. Answer retrieval questions with these three too
 
 ### Choose the tool
 
-- **Discover unfamiliar apps:** for a workplace retrieval question about an app,
-  check Ask source discovery (§2) before declaring it unavailable through Zoom.
-  The app need not be named in this skill or have an app-specific MCP tool.
-- **Third-party content first:** if the requested records, messages, documents, or
-  answers belong to an app connected through Zoom, use §2's Ask route, including
-  find, list, count, exact-ID, and link requests. This takes precedence over the
-  verb-based rules below.
-- For native Zoom content: meaning (what, why, summarize, status, decisions, owners) → `ask`. Records (find,
-  list, count, open, link, IDs) → `search`. Torn → `ask`.
-- Calendar or schedule → `search` on `calendar` when available. `ask` has no calendar
-  scope and cannot answer reliably from calendar data.
-- Meaning about one specific Zoom meeting or Zoom Doc, including decisions or owners → `search`
-  to pin it (§5), then `ask` with the artifact named in `query` and the relevant
-  discovered datasource scopes (a third-party record: §2).
-
-Route by the requested artifact, not every app name in the sentence: "find my Zoom
-meetings about an outage in our CRM" requests Zoom meeting records. Use an app
-established by the user or conversation; account, payment, channel, or ticket terms
-alone do not uniquely identify a provider. For a broad workplace question without a
-specified app, use established context or leave Ask unscoped when its contract
-supports that scope. Ask which source when choosing one would materially change
-the request. Never drop an explicit source restriction to broaden retrieval.
+- **Ask first:** For native Zoom content and third-party content (§2), prefer `ask`,
+  including find, list, count, open, link and synthesis requests. Before any Ask call,
+  use `search_describe_capabilities` with `tool=ask` on the intended connection and
+  require top-level boolean `has_ask_tool_permission: true`. Otherwise fall back to
+  `search` for native Zoom content; for third-party content, report the limitation
+  without using Search.
+- When a native Zoom named-item read or write requires an exact record ID, use
+  `search` to resolve it. Ordinary questions about a meeting or Doc need no preliminary Search.
 
 ### Choose the datasources
 
 The datasource names below are routing examples, not a list of available sources.
 Discover native Search datasources with `tool=search`
 and Ask datasources with `tool=ask`; use the corresponding response's `data` keys
-as datasource names. Reuse discovery only for the same caller and tool. For
-third-party Ask, match the app using Ask discovery's `name`/`alias` options and
-submit the returned `name` in `source` (§2), not Search metadata.
+as datasource names. Reuse discovery only for the same caller and tool.
+
+For third-party Ask, identify the requested app from the task or context, not
+topic mentions or generic business terms; ask if ambiguous. Match the app using
+Ask discovery's `name`/`alias` options and submit the returned `name` in `source`
+(§2), not Search metadata.
 
 | Requested artifact | Example datasource |
 |---|---|
 | Host-owned meeting records, summaries, cloud recordings and recording transcripts | `zoom_meeting` |
 | Authorized notes and attendee-side transcripts from Zoom, third-party or in-person meetings | `zoom_my_notes` |
-| Schedules and calendar events | `calendar` (Search only) |
+| Schedules and calendar events | `zoom_meeting` (Ask); `calendar` (Search) |
 | Zoom Team Chat groups and channels | `zoom_chat_session` |
 | Zoom Team Chat message content (not messages from a connected third-party chat app) | `zoom_chat_message` |
 | Zoom Docs | `zoom_canvas` |
@@ -71,7 +60,7 @@ request; a meeting, person or date used only as a qualifier does not add a datas
 | "Find the transcript of yesterday's design review." | `zoom_my_notes` + `zoom_meeting` | Could be an attendee-side transcript or a cloud-recording transcript; meeting context alone does not distinguish them. |
 
 For explicit requests, keep the corresponding scope: "Show tomorrow's calendar
-events" → `calendar`; "Find Zoom Team Chat messages mentioning Atlas" → `zoom_chat_message`;
+events" → `zoom_meeting` for Ask, `calendar` for Search; "Find Zoom Team Chat messages mentioning Atlas" → `zoom_chat_message`;
 "Find my notes from the design review" → `zoom_my_notes`. Resolve relative Search
 time filters using the tool's time-zone instructions.
 
@@ -208,13 +197,18 @@ omitted scope includes `zoom_chat_message`, which ignores `page_size`.
   agent runs on the user's own machine). If it is unavailable, is `UTC` / `Etc/*`, or
   may belong to a remote host or container, ask the user and wait before calling
   `search` or `ask`; never guess. Pass it to `ask` as `user_context.timezone`.
-- A named meeting may fall on a different local day for a distributed team: search by
-  topic first and pick the occurrence; if you need a window, pad it by a day each side.
+- When using Search, a named meeting may fall on a different local day for a distributed
+  team: search by topic first and pick the occurrence; if needed, pad the window by a day each side.
 - For person- or week-scoped enumeration, query a superset window, bucket client-side,
   and say which reading of the phrase you used.
 
 ## 6. `ask` answers
 
+- Copy a self-contained user request into Ask's `query` verbatim, excluding the skill
+  invocation. Do not paraphrase, translate or append questions, fields, summaries or
+  filters. Resolve only genuine references with verified context, retaining original
+  dates, constraints and requested output on every call. Pinning a candidate with
+  Search does not authorize adding questions about decisions, owners or next steps.
 - `ask` grows with its citation count; scope it when the evidence scope is known
   and supported by discovery. Keep a broad question unscoped rather than inventing
   a scope just to reduce citations.
