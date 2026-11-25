@@ -2,7 +2,7 @@
 
 Use your own Zoom account from Claude Code. The plugin connects Claude to the Zoom MCP server, so you can ask in plain language and Claude searches, answers questions about and works with your meetings, recordings, notes and docs.
 
-It bundles one MCP server and two skills that teach Claude how to use it. It has no commands, agents or hooks.
+It bundles one MCP server and three skills that teach Claude how to use it. It has no commands, agents or hooks.
 
 ## Need developer skills?
 
@@ -19,6 +19,7 @@ This plugin is for *using* Zoom. If you or an agent need to *build* with Zoom (S
 - **Meetings:** find a meeting by topic, read its summary and assets, schedule, change or cancel meetings, and use in-meeting controls.
 - **Recordings:** list your cloud recordings and read their transcripts and other resources.
 - **My Notes:** read your Zoom notes.
+- **Workflows:** build, test, deploy, list, inspect and turn off Zoom Workflows, automations in your Zoom account that keep running on their trigger. Ask "what can you do with Zoom Workflows?" for the five shortcuts, or send one directly, for example `/zoom-plugin:zoom-workflows send meeting summary`. With your own Zoom app (Route 2 below), add the three workflow scopes `workflow:read:definition`, `workflow:read:list_definitions` and `workflow:write:definition`, plus the meeting scopes the test runs use.
 - **Docs, Sheets and Hub:** read and create Zoom Docs, Paper docs and spreadsheets, and manage who a doc is shared with.
 
 Example prompts:
@@ -31,12 +32,14 @@ Create a Zoom Doc with the action items from my last meeting.
 
 ## The skills
 
-Two skills teach Claude how to use the server. They are instructions only, and they only work while the Zoom MCP server below is connected. `zoom-search` is read-only; `zoom-flagship-mcp` also covers actions that change data, under its confirmation rules.
+Three skills teach Claude how to use the server. They are instructions only, and they only work while the Zoom MCP server below is connected. `zoom-search` is read-only; `zoom-flagship-mcp` also covers actions that change data, under its confirmation rules.
 
 - [`zoom-flagship-mcp`](skills/zoom-flagship-mcp/SKILL.md) is the entry point. It routes all search and Ask work to `zoom-search` and handles named-item reads, doc and sheet creation, meeting changes, live meeting controls and doc collaborators itself. If `zoom-search` is unavailable, it reports search as unavailable; a write that needs a lookup requires an exact ID or link from the user. Its write rules say to resolve the exact target first and to confirm deletes, collaborator removals and in-meeting controls before running them.
 - [`zoom-search`](skills/zoom-search/SKILL.md) holds the detailed guidance for the three search tools (`search`, `search_describe_capabilities`, `ask`): datasources, filters, paging, third-party apps, time zones and `ask` errors. It prefers Ask when permission is confirmed, including native record lookups; native content falls back to Search when permission is unavailable, while third-party content requires Ask. Necessary native record-ID lookups still use Search. It can be discovered and loaded independently. `zoom-flagship-mcp` also routes search and Ask work to it.
 
-In Claude Code they appear as `zoom-plugin:zoom-flagship-mcp` and `zoom-plugin:zoom-search`.
+- [`zoom-workflows`](skills/zoom-workflows/SKILL.md) builds and runs Zoom Workflows through the same server. It is reached by its own description, not through `zoom-flagship-mcp`, and reads its procedures and templates from [`Workflow/`](Workflow). It needs Python 3.9 or later to compile a new custom workflow.
+
+In Claude Code they appear as `zoom-plugin:zoom-flagship-mcp`, `zoom-plugin:zoom-search` and `zoom-plugin:zoom-workflows`.
 
 ## Install
 
@@ -93,6 +96,8 @@ Some tools change or delete things, such as `meeting_delete`, `meeting_update` a
 .mcp.json                    the Zoom MCP server
 skills/zoom-flagship-mcp/    entry-point skill: routes requests
 skills/zoom-search/          Zoom's search skill with local Ask-first routing and permission checks
+skills/zoom-workflows/       Zoom Workflows skill
+Workflow/                    the Workflows skill's procedures, generator and shortcut templates
 TOOLS.md                     tools, scopes and rate limits
 ```
 
